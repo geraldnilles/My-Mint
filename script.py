@@ -1,10 +1,12 @@
 #!/usr/bin/python
 
 
+
+
 import os,re,urllib
 
 ## For Help, see this http://blog.philippklaus.de/2010/02/aqbanking-cli/
-
+# TODO - Remove dependancy on aqbanking-cli program
 def grab_transactions():
 	## Use aqbanking-cli to download the bank transactions
 	cmd = "aqbanking-cli request -a ACCT_Number --transactions -c out.txt"
