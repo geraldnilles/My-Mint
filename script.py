@@ -72,7 +72,9 @@ class MyMint:
 		f.close()
 
 	# Download the ODX file from the interwebs, 
-	#	then call the import_ODX_text 
+	#	then call the import_ODX_text
+	#  THis will require an encrypted HTTPS request which i dont
+	# know how to do 
 	def import_internet(self,accountID):
 		pass
 
@@ -100,24 +102,39 @@ class MyMint:
 	# using my checking account, the same transaction will be 
 	# imported by both banks.
 	def list_opposites(self):
-		pass
+		for t in get_transactions():
+			self.run_sql("SELECT * FROM Transactions WHERE date=t[date], amount=t[amount], trnid=trnid")			
 
 	# Deletes all transactions in the transactions list
 	def delete_transactions(self,transactions):
-		pass
+		for t in transactions:
+			self.run_sql("DELETE FROM Transactions WHERE key=t[key]")
 
 	# Adds a list of transactions.  
 	# Each transaction is a dict object
-	def add_transactions(self,transactions):
-		pass
+	def add_transactions(self,ts):
+		for t in ts:
+			run_sql("INSERT INTO Transactions Values (memo=t[memo],...")
 
 	def add_account(self,name,parent,tags,bankID,acctNum):
-		pass
+		match = self.run_sql("SELECT * FROM Accounts WHERE name=name or bankID=bankID or acctNum=acctNum")
+		if match:
+			## TODO dismis "None" matches for bankID/acctNum
+			return "Account already exists"+repr(match)
+		
+		self.run_sql("INSERT INTO Accounts Values (name=name,parent=parent,tags=tags,bankID=bankID,acctNum=acctNum")		
 
 	def add_rule(self,regEx,AccountID):
-		pass
+		self.run_sql("INSERT INTO Rules VALUES (regEx=regEx,AccountID=AccountID")
+		
+	def remove_rule(self,ID):
+		self.run_sql("DELETE FROM Rules WHERE ID=ID")
 		
 	
+	#############################
+	## SQL Functions	
+	#############################
+
 	def create_db(self):
 		## SQL Shit
 
@@ -127,6 +144,19 @@ class MyMint:
 		slef.add_account("Equity",-1)	
 		self.add_account("Income",-1)
 
+	def run_sql(query):
+		# Open DB
+		# Run Query
+		# Create a return list
+		# Return
+		pass
+
+	def get_transactions(self):
+		return self.run_sql("SELECT * FROM Transactions")
+
+	def get_unknown_transactions(self):
+		return self.run_sql("SELECT * FROM Transactions WHERE From=-1 or To=-1")
+	
 
 
 if __name__ == "__main__":
