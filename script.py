@@ -5,17 +5,7 @@
 
 import os,re,urllib
 
-## For Help, see this http://blog.philippklaus.de/2010/02/aqbanking-cli/
-# TODO - Remove dependancy on aqbanking-cli program
-def grab_transactions():
-	## Use aqbanking-cli to download the bank transactions
-	cmd = "aqbanking-cli request -a ACCT_Number --transactions -c out.txt"
-
-	## Instead of using an inermediate file, we can simply read the STDOUT of the
-	## above command
-
-	return text
-
+''' Backup
 def parse_txt(text):
 	theRE =  "transaction {.*?"
 	theRE += "date {.*?day=\"([0-9]*?)\".*?month=\"([0-9]*?)\".*?year=\"([0-9]*?)\".*?"
@@ -41,40 +31,102 @@ def parse_txt(text):
 		trns.append(t)
 
 	return trns
+'''
 	
 
-## Add the list of transactions to the database
-def add_transaction(acct_id,desc,date,amount):
-	## Open DB
+class MyMint:
+	def __init__(self,dbpath):
+		## Define the path to the db
+		## TODO conver to full system path (/path/to/db.db)
+		self.dbpath = dbpath
+		if not os.path.exists(self.dbpath):
+			self.create_db()
 
-	## If trns is already in the DB, return "Error: Already Exists"
-	## Add to db
+	# This will parse the QIF file and grab transactions. 
+	# if accountID is not specified,
+	def import_QIF_text(self,text):
+		pass
 
-	## Close DB
-	return "Success"
+	# This will read a QIF file and call the QIF_text method
+	def import_QIF_file(self,qif_path):
+		f = open(qif_path,"r")
+		self.import_QIF_text(f.read())
+		f.close()
 
+	def import_ODX_text(self,text):
+		# Look for the Bank and Accnt numbers
+		# Verify that there is an accout that matches them
+		# If not, return the numbers and ask the user to create an account first.
 	
-def apply_rules():
-	## Scan through all of the transactions and apply the rules
-	pass
+		# Parse each transaction
+		trans = []
+		# For each Trn
+			# Create a dict and add to list
 
-	## scans through the transactions and looks for 2 transactions from the same date that
-	## are opposite each other.  For example, when i pay my AMEX, it removes $100 from my 
-	## bank account and adds $100 to my AMEX account.  These 2 transactions need to be merged
-def find_opposites():
-	pass
+		self.add_transactions(trans)
+		pass
 
-def add_account(name,acct_type,categories,username,password,acct_num):
-	pass
+	def import_ODX_file(self,odx_path):
+		f = open(odx_path,"r")
+		self.import_ODX_text(f.read())
+		f.close()
 
-def add_rule(desc_regex,acct_to,acct_from):
-	pass
+	# Download the ODX file from the interwebs, 
+	#	then call the import_ODX_text 
+	def import_internet(self,accountID):
+		pass
 
+	# Apply rules to all transactions that have missing accounts
+	def apply_rules(self):
+		pass
 
-f = open("text/amex.txt",'r')
-text = f.read()
-parse_txt(text)
+	# Automatically remove all duplicate transactions
+	def autoremove_duplicates(self):
+		l = self.list_duplicates()
+		## TODO, trim one from each duplicate
+		self.delete_transactions(l)
+
+	def autoremove_opposites(self):
+		l = self.list_opposites()
+		## TODO, Trim one from each opposite pair
+		self.delete_transactions(l)
 	
+	# creates a list of all suspected duplicates
+	def list_duplicates(self):
+		pass
+
+	# Creates a list of transactions that are the same, but from 
+	# 2 different sources.  Example, If is payoff my credit card
+	# using my checking account, the same transaction will be 
+	# imported by both banks.
+	def list_opposites(self):
+		pass
+
+	# Deletes all transactions in the transactions list
+	def delete_transactions(self,transactions):
+		pass
+
+	# Adds a list of transactions.  
+	# Each transaction is a dict object
+	def add_transactions(self,transactions):
+		pass
+
+	def add_account(self,...):
+		pass
+
+	def add_rule(self,...):
+		pass
+		
+	
+	def create_db(self):
+		## SQL Shit
+
+		# Add the 4 Major account groups
+		self.add_account("Expenses",-1)
+		self.add_account("Liabilities",-1)
+		slef.add_account("Equity",-1)	
+		self.add_account("Income",-1)
+
 
 
 if __name__ == "__main__":
