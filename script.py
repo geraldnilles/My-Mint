@@ -111,10 +111,10 @@ class MyMint:
 	def add_transactions(self,transactions):
 		pass
 
-	def add_account(self,...):
+	def add_account(self,name,parent,tags,bankID,acctNum):
 		pass
 
-	def add_rule(self,...):
+	def add_rule(self,regEx,AccountID):
 		pass
 		
 	
