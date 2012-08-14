@@ -5,6 +5,7 @@
 
 import os,re,urllib
 
+## THis is a backup script that i will rewrite
 ''' Backup
 def parse_txt(text):
 	theRE =  "transaction {.*?"
@@ -53,7 +54,7 @@ class MyMint:
 		self.import_QIF_text(f.read())
 		f.close()
 
-	def import_ODX_text(self,text):
+	def import_OFX_text(self,text):
 		# Look for the Bank and Accnt numbers
 		# Verify that there is an accout that matches them
 		# If not, return the numbers and ask the user to create an account first.
@@ -66,7 +67,7 @@ class MyMint:
 		self.add_transactions(trans)
 		pass
 
-	def import_ODX_file(self,odx_path):
+	def import_OFX_file(self,odx_path):
 		f = open(odx_path,"r")
 		self.import_ODX_text(f.read())
 		f.close()
@@ -76,11 +77,26 @@ class MyMint:
 	#  THis will require an encrypted HTTPS request which i dont
 	# know how to do 
 	def import_internet(self,accountID):
+        # Create ODX Headers
+        # Encrypt Password using ODX 2.1.1 procedure
+            # This may require download the certificate
+        # Create XML request file
+        # Open the HTTPS connection and set the requiest
+        # Receive the header
 		pass
 
 	# Apply rules to all transactions that have missing accounts
 	def apply_rules(self):
-		pass
+		ts = run_sql("SELECT * FROM Transactions WHERE From=-1 and To=-1")
+		rs = run_sql("SELECT * FROM Rules")
+
+		for t in ts:
+			for r in rs:
+				m = search(r["RegEx"],t["Memo"])
+				if m:
+					# TODO update TO and From fields.
+					run_sql("UPATE Transactions SET From=r[Account] where Key=t[key]") 
+	
 
 	# Automatically remove all duplicate transactions
 	def autoremove_duplicates(self):
