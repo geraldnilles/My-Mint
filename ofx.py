@@ -103,7 +103,7 @@ def encrypt_password(bank):
 def create_ofx_body(reqs):
     
     output = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-    output += "<?OFX OFXHEADER=\"200\" VERSION=\"211\" SECURITY=\"TYPE1\" OLDFILEUID=\"NONE\" NEWFILEUID=\"NONE\" ?>\n"
+    output += "<?OFX OFXHEADER=\"200\" VERSION=\"211\" SECURITY=\"NONE\" OLDFILEUID=\"NONE\" NEWFILEUID=\"NONE\" ?>\n"
 
     root = et.Element("OFX")
     for r in reqs:
@@ -138,9 +138,9 @@ def get_challenge_data(bank):
     dt = et.SubElement(sonrq,"DTCLIENT")
     dt.text = time.strftime("%Y%m%d%H%M%S")
     userid = et.SubElement(sonrq,"USERID")
-    userid.text = "anonymous"
+    userid.text = pad_32("anonymous")
     userpass = et.SubElement(sonrq,"USERPASS")
-    userpass.text = "anonymous"
+    userpass.text = pad_32("anonymous")
     lang = et.SubElement(sonrq,"LANGUAGE")
     lang.text= "ENG"
     fi = et.SubElement(sonrq,"FI")
@@ -152,10 +152,14 @@ def get_challenge_data(bank):
     appid.text = "MyPyOFX"
     appver = et.SubElement(sonrq,"APPVER")
     appver.text = "0.1"
-    chtrn = et.SubElement(sign,"CHALLENGETRNRQ")
-    ch = et.SubElement(chtrn,"CHALLENGERQ")
-    uid = et.SubElement(ch,"USERID")
-    uid.text = bank["username"]
+    chtrn = et.SubElement(sign,"PROFTRNRQ")
+    trnuid = et.SubElement(chtrn,"TRNUID")
+    trnuid.text = str(int(time.time()*2.2))
+    ch = et.SubElement(chtrn,"PROFRQ")
+    clir = et.SubElement(ch,"CLIENTROUTING")
+    clir.text = "NONE"
+    dtp = et.SubElement(ch,"DTPROFUP")
+    dtp.text = "19000101010101"
     body = create_ofx_body([sign])
     print body
     headers = { "Content-Type":"application/x-ofx",
@@ -175,3 +179,5 @@ def split_url(url):
     if m:
         return (m.group(1),"/"+m.group(2)) 
 
+def pad_32(s):
+    return s+("0"*(32-len(s)))
