@@ -4,7 +4,10 @@ import re
 import time
 import uuid
 
-# This is the main function that should be called.
+# TODO s
+# Add ability to only download certain time periods
+
+# This is the main function that should be called
 # bank is a dictonary containing info about the financial institution
 def get_trns(bank):
     sign = get_signon_element(bank)
