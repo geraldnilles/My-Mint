@@ -15,7 +15,7 @@ class mint:
                 self.add_acct(self.db["accounts"],n)
         self.fn = fn
 
-    def write(self):
+    def save(self):
         f = open(self.fn,"w")
         json.dump(f,self.db)
         f.close()
@@ -25,7 +25,7 @@ class mint:
     #####################
 
     def download_all(self):
-        self.download_all_rec(self.db,self.db)
+        self.download_all_rec(self.db)
 
     def download_all_rec(self,acct):    
         for a in acct["accounts"]:
@@ -107,6 +107,7 @@ class mint:
 
         return result
 
+
     # Gets the account type: [Asset,Income,Liability,Equity,Expenses]
     def get_acct_type(self,obj):
         # For allof the root accounts 
@@ -135,25 +136,82 @@ class mint:
     ### Manage Methods
     ###############
 
+    # Creates a new account and adds it to the tree.
     def add_acct(self,parent,name):
+        if self.find_acct_from_name(name) != None:
+            print "Account with the name \""+name+"\" already exists"
+            return 1
         acct = {
                 "name":name,
                 "transactions":[]
                 }
         parent["accounts"].append(acct)
+        return 0
 
-
+    # Adds an ofx_info dictionary to the account.
+    # If one already exists, it replaces it
     def add_ofx_info(self,acct,ofx):
-        acct.append(ofx)
+        acct["ofx_info"]= ofx
+
+    # Modifies the existing OFX dictionary
+    def edit_ofx_info(self,acct,ofx):
+        # If OFX dict was never initialized, call the add command
+        if "ofx_info" not in acct:
+            add_ofx_info(acct,ofx)
+            return
+        
+        # Modify each key separately, this will preserve existing data in the ofx dictionary
+        for k in ofx:
+            acct["ofx_info"][k] = ofx[k]
 
     def wipe_trns(self,acct):
-        # Find all transaction lists and replace them with empty list
+        # If account contains a "transaction" list, replace it witn an empty 
+        if "transactions" in acct:
+            acct["transactions"] = []
+
+        # If account contains more accounts, recursivly call the same function
+        if "accounts" in acct:
+            for a in acct["accounts"]:
+                self.wipe_trns(a)
 
     def apply_rules(trn):
-        pass
+        unsorted = self.get_unsorted_trns(self.db)
+        for t in unsorted:
+            for r in self.db["rules"]:
+                if re.match(r["re"],t["name"]) and max > t["amount"] > min :
+                    a = self.get_parent(t)
+                    b = self.get_acct_from_name(r["account"])
+                    m = self.multiplier(a,b)
+                    c = copy.copy(t)
+                    c["amount"]=c["amount"]*m
+                    b["transactions"].append(c)
+                    
+                    break
+            
+                            
 
     def apply_rules_all():
-        pass
+        self.get_all_trns(self.db)
+
+
+    # Figure out if the sign should be inverted based on the equation:
+    # Assets + Expenses = Equity + Income + Liabilities
+    def multiplier(self,a,b):
+        A = self.get_acct_type(a)
+        B = self.get_acct_type(b)
+
+        # Put both sides of the equation in their own sets
+        set1 = ["Assets","Expenses"]
+        set2 = ["Equity","Income","Liabilities"]
+
+        # If A and B are on oposite sides of the equation, no need to invert the sign
+        if A in set1 and B in set2:
+            return 1
+        elif B in set1 and A in set2:
+            return 1
+        # Othewise, you will need to invert
+        else
+            return -1
 
     ###############
     ### OFX Methods
