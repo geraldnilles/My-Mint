@@ -11,7 +11,9 @@ class mint:
             f.close()
         else:
             self.db={"rules":[],"accounts":[]}
-            for n in ["Assets","Income","Equity","Expenses","Liabilities"]:
+            self.base_accts = ["Assets","Income","Equity","Expenses",
+                                    "Liabilities"]
+            for n in self.base_accts:
                 self.add_acct(self.db["accounts"],n)
         self.fn = fn
 
@@ -67,7 +69,7 @@ class mint:
     ### Search Methods
     ############
 
-    def find_uid(self,obj,uid):
+    def uid_exists(self,obj,uid):
         if "uid" in obj:
             if obj["uid"] == uid:
                 return True
@@ -86,6 +88,57 @@ class mint:
                     result = True
 
         return result
+
+    def get_all_trns(self,acct):
+        trns = []
+
+        if "transactions" in acct:
+            trns += acct["transactions"]
+
+        if "accounts" in acct:
+            for a in account:
+                trns += self.get_all_trns(a)
+
+    # Check to see if a transaction has been double entered.
+    def is_sorted(self,trn):
+        trns = self.get_all_trns(self.db)
+        # Find all transactions that match
+        matches = []
+        for t in trns:
+            if t["uid"] == trn["uid"]:
+                matches.append(t)
+            
+        # If there are exactly 2 matches, and each match is in a different account, then return true.  Else, return false
+        if len(matches) == 2:
+            if self.get_parent(matches[0]) != self.get_parent(matches[1]):
+                return True
+
+        return False
+            
+            
+
+    def get_unsorted_trns(self):
+        trns = get_all_trns()
+        unstrn = []
+        for t in trns:
+            if not is_sorted(trn):
+                unstrn.append(t)
+        return unstrn
+
+    def get_parent(self,root,obj):
+        if "transactions" in root:
+            if obj in root["trnsactions"]:
+                return root
+        if "accounts" in root:
+            if obj in root["accounts"]:
+                return root
+            else:
+                for a in root["accounts"]:
+                    p = get_parent(a,obj)
+                    if p != None:
+                        return p
+            
+        return None
 
     # Returns True, if the parent/Child relationship is correct.    
     # THis include sub-children too!
@@ -137,16 +190,17 @@ class mint:
     ###############
 
     # Creates a new account and adds it to the tree.
+    # If executed successfully, the new acct object is returned.
     def add_acct(self,parent,name):
         if self.find_acct_from_name(name) != None:
             print "Account with the name \""+name+"\" already exists"
-            return 1
+            return None
         acct = {
                 "name":name,
                 "transactions":[]
                 }
         parent["accounts"].append(acct)
-        return 0
+        return acct
 
     # Adds an ofx_info dictionary to the account.
     # If one already exists, it replaces it
@@ -164,6 +218,8 @@ class mint:
         for k in ofx:
             acct["ofx_info"][k] = ofx[k]
 
+    # Given an account object, this function clears all transactions of the 
+    # current account and all its child accounts
     def wipe_trns(self,acct):
         # If account contains a "transaction" list, replace it witn an empty 
         if "transactions" in acct:
