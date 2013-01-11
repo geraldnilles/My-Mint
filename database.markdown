@@ -1,73 +1,46 @@
 
-This document will describe the various JSON files that store all of the financial data.
+This document will describe the database file.
 
-There will be 3 JSON documents: Rules, Transactions, and Accounts.
+# database.json
 
+To make parsing easy, the database will be contained in 1 large json file.  There is an example file called exampleDB.json that has the right format.
 
-Now that i think about it, maybe all of this can be dumped into 1 JSON file?
-THe only thing to consider is if the file grows too big, it might require too much memory to run.
+The root of this json struction will have 2 entries: "rules" and "accounts".
 
-This will also make it easier to encrypt and decrypt info
+# rules[]
+The rules array will be a list of rules used to auto-assign transactions to accounts.
 
-# Rules.json
-This file will describe all of the transaction assignment rules.
-It will contain a list of dictionaries.
-Each dictionary will be a rule described in the list below:
+Each rule will be a dictionary with the following format
 
-* Memo - String - A RegEx to be applied on the memo field
-* AccountID - Account ID to be assigned to this transaction if the RegEx Matches
-* MinAmount - Float - Minimum amount 
-* MaxAmount - Float - Maximum amount of the transaction
+{
+    name:"Exxon Mobile" // A RegEx to be applied to the Name field.
+    memo:"Memo", // A RegEx to be applied to the memo filed
+    acctName:"Gas", // Name of account that this will be paired with
+    minAmount:"0.00", // Minimum absolute value (optional). 
+    maxAmount:"100.00" // Maximum absolute value (optional)
+}
 
-# Transactions.json
-This file (or files) will contain all of the transactions.
-It will contain a list of dictionaries.
-Each dictionary will describe a single transaction.
+TODO Might combine name and memo regex's into 1 string.
 
-* TransactionID - A string that uniquely identifies each transaction.  It will likely contain the banks UID and the bank name.
-* From Account - Int - ID Number of the 'from' account
-* To Account - Int - ID number of the 'to' account
-* Memo - String - Memo for the transaction
-* Amount - Float - Amount of money for the transaction.  We will aim to keep this value positive and reverse the From/To numbers to invert any negative numbers
+# accounts[]
 
-# Accounts
-This file will contain all of the accounts.
-It will contain a dictionary.
-Each item of the dictionary will contain another dictionary describing the account
+Account objects will be nestable.  For example, Inside teh Expenses account could be an Automotive Account.  With in that could be a Gas and Insurance account.
 
-* Name - String - Account name
-* Parent Account - Int - Points to the account it is appart of.  If it is a root account, set this to -1
-* Tags - String - A list of categories.  This is just for easier grouping of accounts for graphing and summaries.  Tags will be separated using commas or semi,colons
-* FID	- string - An ID of the financial instidution linked to this account.  This will be required for ODX and QIF importing.  "None" will be the default if not used
-* AcctNum - string - The Actual account number used by the FID.  This will also be used during Auto importing. "None" will be the default if not used
+At the root of the accounts list, there will be the 4 basic accounts: ["Assets","Income","Equity","Expenses", "Liabilities"].
 
-## Format
+Each account will have the folloiwng format
 
-    {"Accounts":{
-        "Income": {
-            "Tags":[...],
-            "FID":"",
-            "AccountNum":"",
-            "Accounts":{
-                "RIM":{
-                    "Tags":[],
-                    "FID":
-                }
-            }
-        },
-        "Expenses":{
-            "Accounts":{
-                "Auto":{
-                    
-                }
-            }
-        },
-        "Liabilities":{
-            "Accounts":{
-                "Gerald AMEX":{
-                    "Tags":[],
-                    "FID":""
-                }
-            }
-        }
-    }}
+{
+
+}
+
+IMPORTANT!  Every account must have a unique name.
+
+## transactions[]
+
+Each account will also have a transactions list.  THis contains all of the transactions.
+
+Each transaction will have the following format:
+{
+
+}

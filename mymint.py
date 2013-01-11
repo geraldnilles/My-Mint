@@ -27,9 +27,13 @@ class mint:
     ### Download Methods
     #####################
 
+    # Wrapper for the Resursive Version 
+    # TODO Remove this an use loaded arguments instead
     def download_all(self):
         self.download_all_rec(self.db)
 
+    # Scans through the Accounts Tree, Looks for accounts with OFX info and
+    # downloads the info.
     def download_all_rec(self,acct):    
         for a in acct["accounts"]:
             if "ofx_info" in a:
@@ -37,19 +41,24 @@ class mint:
             if "accounts" in a:
                 self.download_all_rec(a)
                 
+    # Downloads OFX data from the server given an account with OFX credentials.
     def download(self,acct):
         print "Downloading Transactions from "+acct["name"] 
 
+        # Get OFX XML string
         resp = self.get_ofx_data(acct["ofx_info"])
 
+        # Convert to an eTree object
         xml = et.fromstring(resp)
 
+       # For eatch STatMenT TRaNsaction, create a json version of the trans
         for t in xml.iter("STMTTRN"):
             trn = {}
             for c in t:
                 if c.tag=="DTPOSTED":
                     trn["date"]=c.text
                 if c.tag=="FITID":
+                    # Generate an UID based on FID and FITID
                     trn["uid"] = acct["ofx_info"]["fid"]+c.text
                 if c.tag=="TRNAMT":
                     trn["amount"] = c.text
@@ -58,7 +67,7 @@ class mint:
                 if c.tag=="MEMO":
                     trn["memo"]=c.text
 
-            # Check if FITID already exists
+            # Check same transaction alread exists
             if self.find_uid(self.db,trn["uid"]):
                 # If it does, do not add it
                 continue
@@ -70,6 +79,7 @@ class mint:
     ### Search Methods
     ############
 
+    # Recusive function that searches for uid
     def uid_exists(self,obj,uid):
         if "uid" in obj:
             if obj["uid"] == uid:
@@ -90,6 +100,7 @@ class mint:
 
         return result
 
+    # Generates a list of Transactions inside an account and its child accounts
     def get_all_trns(self,acct):
         trns = []
 
@@ -101,6 +112,7 @@ class mint:
                 trns += self.get_all_trns(a)
 
     # Check to see if a transaction has been double entered.
+    # 
     def is_sorted(self,trn):
         trns = self.get_all_trns(self.db)
         # Find all transactions that match
