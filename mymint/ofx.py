@@ -1,33 +1,60 @@
+################################
+################################
+#
+# OFX.py - This module is used to grab OFX data from financial servers
+#
+################################
+################################
+
 import xml.etree.ElementTree as et
-import httplib
-import re
-import time
-import uuid
 
-# TODO s
-# Add ability to only download certain time periods
+#############################
+# Gets OFX data from server 
 
-# This is the main function that should be called
-# bank is a dictonary containing info about the financial institution
-def get_trns(bank):
-    sign = get_signon_element(bank)
+# Parameters:
+    # bank - THis is a dictionary containing the bank info and signon info
+    #       It will normally be in the following format:
+    #       {   
+    #           "bankid"="[routing number]",
+    #           "accttype"="CHECKIKNG/SAVINGS/CREDITCARD",
+    #           "acctid"="[account number/creditcard number",
+    #           "username"="[username]",
+    #           "password"="[password]",
+    #           "ofx_url"="https://www.url/to/OFX/server",
+    #           "fid"="[banks finantial ID",
+    #           "org"="[Bank's ORG]"
+    #       }
+
+# Returns: 
+    # String - OFX string (an XML file)
+def get_data(bank):
+    # Create Signon Element
+    sign = signon_elements(bank)
+    # Create Request (depends on Account type)
     if bank["accttype"] in ["CHECKING"]:
-        msg = get_bankmsg_element(bank)
+        msg = bankmsg_element(bank)
     elif bank["accttype"] in ["CREDITCARD"]:
-        msg = get_ccmsg_element(bank)
-    body = create_ofx_body([sign,msg])
-    print body+"\n\n"
+        msg = ccmsg_element(bank)
+    # Combines the sign-on and Request into the complete message
+    body = create_body([sign,msg])
+    # Sends request and returns the data packet
     return send_request(body,bank["ofx_url"])
 
+#########################
+# Creates a Bank Request
 
-def get_bankmsg_element(bank):
+# Parameters:
+    # bank - Dictonary containing the banks info and signon info
+# Returns:
+    # XML Element Tree - containing the bank request
+def bankmsg_element(bank):
     # Create Bank Message
     bankmsg = et.Element("BANKMSGSRQV1")
     # Create Statement Transaction Request
     stmttrnrq = et.SubElement(bankmsg,"STMTTRNRQ")
     # Create Transaction UID
     trnuid = et.SubElement(stmttrnrq,"TRNUID")
-    trnuid.text = uuid.uuid1().hex 
+    trnuid.text = uuid.uuid1().hex
     # Create Statement Request
     stmtrq = et.SubElement(stmttrnrq,"STMTRQ")
     # Create Bank Account Element
@@ -48,7 +75,16 @@ def get_bankmsg_element(bank):
     include.text = "Y"
     return bankmsg
 
-def get_ccmsg_element(bank):
+
+#########################
+# Creates a CreditCard Request
+
+# Parameters:
+    # bank - Dictonary containing the banks info and signon info
+# Returns:
+    # XML Element Tree - containing the CreditCard request
+
+def ccmsg_element(bank):
     ccmsgset = et.Element("CREDITCARDMSGSRQV1")
     ccstmttrnrq = et.SubElement(ccmsgset,"CCSTMTTRNRQ")
     trnuid = et.SubElement(ccstmttrnrq,"TRNUID")
@@ -62,13 +98,16 @@ def get_ccmsg_element(bank):
     include.text = "Y"
 
     return ccmsgset
-    
 
-# Create a OFX request Skeleton
-# The argument is a list ofrequest element.  
-# These will be placed inside the OFX element
-def create_ofx_body(reqs):
-    
+######################
+# Combines the signong and bank requests to for an OFX request string
+
+# Paramter:
+    # reqs - List of ElementTree Requests
+# Returns
+    # String - OFX Request String
+
+def create_body(reqs):
     output = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
     output += "<?OFX OFXHEADER=\"200\" VERSION=\"211\" SECURITY=\"NONE\" OLDFILEUID=\"NONE\" NEWFILEUID=\"NONE\" ?>\n"
 
@@ -80,8 +119,15 @@ def create_ofx_body(reqs):
 
     return output
 
+#########################
+# Creates a  Signon Request
 
-def get_signon_element(bank):
+# Parameters:
+    # bank - Dictonary containing the banks info and signon info
+# Returns:
+    # XML Element Tree - containing the Signon request
+
+def signon_element(bank):
     sign = et.Element("SIGNONMSGSRQV1")
     sonrq = et.SubElement(sign,"SONRQ")
     dt = et.SubElement(sonrq,"DTCLIENT")
@@ -103,12 +149,26 @@ def get_signon_element(bank):
     appver.text = "1700"
     return sign
 
+
+###########################
+# Sends OFX request and receives OFX data from bank server
+
+# Parameters
+    # bank - Dictonary containing the banks info and signon info
+# Returns
+    # string - OFX Data 
+
 def send_request(body,url):
+    # Creates HTTPS Connection
     c = httplib.HTTPSConnection(split_url(url)[0])
+    # Creates Headers (Pretending to be Quiken 1.7 for WIndows)
     headers = { "Content-Type":"application/x-ofx",
                 "User-Agent":"QWIN 1.7"}
+    # Send Request
     c.request("POST",split_url(url)[1],body,headers)
+    # Get Response
     r = c.getresponse()
+    # Print Status
     print (r.status,r.reason)
     data = r.read()
     c.close()
@@ -120,5 +180,5 @@ def split_url(url):
     theRE = "https://(.*?)/(.*)"
     m = re.search(theRE,url)
     if m:
-        return (m.group(1),"/"+m.group(2)) 
+        return (m.group(1),"/"+m.group(2))
 
