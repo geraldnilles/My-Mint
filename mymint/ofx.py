@@ -7,6 +7,78 @@
 ################################
 
 import xml.etree.ElementTree as et
+import jinja2
+
+
+#-----------------------
+# OFX Templates
+#-----------------------
+
+TMPL_XML_DOCUMENT = """
+<?xml version=1.0 encoding=UTF-8?>
+<?OFX OFXHEADER=200 VERSION=211 SECURITY=NONE OLDFILEUID=NONE NEWFILEUID=NONE ?>
+
+<OFX>
+	{{ ofx_element }}
+</OFX>
+
+"""
+
+TMPL_SIGNON_REQUEST_ELEMENT = """
+<SIGNONMSGSRQV1>
+	<SONRQ>
+		<DTCLIENT>{{ time.strftime("%Y%m%d%H%M%S") }}</DTCLIENT>
+		<USERID>{{ username }}</USERID>
+		<USERPASS>{{ password }}</USERPASS>
+		<LANGUAGE>ENG</LANGUAGE>
+		<FI>
+			<ORG>{{ org }}</ORG>
+			<FID>{{ fid }}</FID>
+		</FI>
+		<APPID>QWIN</APPID>
+		<APPVER>1700</APPVER>
+	</SONRQ>
+</SIGNONMSGSRQV1>
+"""
+
+TMPL_BANK_REQUEST_ELEMENT = """
+<BANKMSGSRQV1>
+	<STMTTRNRQ>
+		<TRNUID>{{ uuid }}</TRNUID>
+		<STMTRQ>
+			<BANKACCTFROM>
+				<BANKID>{{ bank_id }}</BANKID>
+				<ACCTID>{{ acct_id }}</ACCTID>
+				<ACCTTYPE>{{ acct_type }}</ACCTTYPE>
+			</BANKACCTFROM>
+			<INCTRAN>
+				<INCLUDE>Y</INCLUDE>
+			</INCTRAN>
+		</STMTRQ>
+	</STMTTRNRQ>
+</BANKMSGSRQV1>
+"""
+
+
+TMPL_CREDITCARD_REQUEST_ELEMENT = """
+<CREDITCARDMSGSRQV1>
+	<CCSTMTTRNRQ>
+		<TRNUID>{{ uuid }}</TRNUID>
+		<CCSTMTRQ>
+			<CCACCTFROM>
+				<ACCTID>{{ acct_id }}</ACCTID>
+			</CCACCTFROM>
+			<INCTRAN>
+				<INCLUDE>Y</INCLUDE>
+			</INCTRAN>
+		</CCSTMTRQ>
+	</CCSTMTTRNRQ>
+</CREDITCARDMSGSRQV1>
+"""
+
+
+
+
 
 #############################
 # Gets OFX data from server 

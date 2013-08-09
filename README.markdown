@@ -1,40 +1,20 @@
-# My Mint
+My Mint
+=======
 
-Create a web-based personal finance tool written in Python.
+# Motivation
+Mint.com is a great tool for managing expenses.  However, the fact that this is a "free" internet service concerns me.  I am not sure what they are doing with my data and I'm not sure how safe my bank information is.
 
-# Features
-* Fetch Statements from Banks using OFX protocol
-* Store transaciton history and balance info
-* Create and monitor budgets
-* Create and view graphs of spending habbits
-
-# Current-Status
-* Can successfully get bank statement data (Tested on Schwab Bank)
-* Can successfully get Credit Card statement data (Test on American Express)
-
-# Concept
-
-There will be 5 Master accounts:
-* Income - Money you bring in
-* Assets - Money in your posession (Bank Accounts)
-* Liabilities - Money you owe (Credit Cards)
-* Equity - Your overall net worth (Assets - Liabilities).  Your openning balances will fall into this account
-* Expenses - Money your spend
-
-Under each of these master accounts will be sub accounts.
-THis will help us organize and categorize money flow.
-
-The overal equations are
-    Assets - Liabilties = Equity
-        and
-    Assets - Liabilities = Equity + (Income - Expenses)
-
-So under normal conditions, each master account will have a positive balance.
-
-Each transaction will be entered into 2 different accounts.
-This double entry method is a way of verifying that everything balances out right.
+# Goal
+Create a python program that organizes my expenses.  
 
 
+# Plan
+1. Donwload a List of Transactions from bank servers and store in a database
+2. Categorize the expenses using a list of rules
+3. Display Expenses based on Category
+4. Balance the Transactions using the double-entry method
+
+# Technical Details
 
 ## Transaction Examples
 
