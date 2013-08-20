@@ -6,16 +6,20 @@
 ################################
 ################################
 
-import xml.etree.ElementTree as et
 import jinja2
+import time
+import uuid
+import httplib
+import re
 
+#---------------#
+# OFX Templates #
+#---------------#
 
-#-----------------------
-# OFX Templates
-#-----------------------
-
-TMPL_XML_DOCUMENT = """
-<?xml version=1.0 encoding=UTF-8?>
+## Document Header Template
+#
+# Contains the XML and OFX headers
+TMPL_XML_DOCUMENT = """<?xml version=1.0 encoding=UTF-8?>
 <?OFX OFXHEADER=200 VERSION=211 SECURITY=NONE OLDFILEUID=NONE NEWFILEUID=NONE ?>
 
 <OFX>
@@ -24,10 +28,13 @@ TMPL_XML_DOCUMENT = """
 
 """
 
+## Signon Request Template
+#
+# Template for the OFX signon message
 TMPL_SIGNON_REQUEST_ELEMENT = """
 <SIGNONMSGSRQV1>
 	<SONRQ>
-		<DTCLIENT>{{ time.strftime("%Y%m%d%H%M%S") }}</DTCLIENT>
+		<DTCLIENT>{{ time }}</DTCLIENT>
 		<USERID>{{ username }}</USERID>
 		<USERPASS>{{ password }}</USERPASS>
 		<LANGUAGE>ENG</LANGUAGE>
@@ -41,6 +48,9 @@ TMPL_SIGNON_REQUEST_ELEMENT = """
 </SIGNONMSGSRQV1>
 """
 
+## Bank Transaction Request Template
+#
+# This template contains a request for bank account transactions.
 TMPL_BANK_REQUEST_ELEMENT = """
 <BANKMSGSRQV1>
 	<STMTTRNRQ>
@@ -59,7 +69,9 @@ TMPL_BANK_REQUEST_ELEMENT = """
 </BANKMSGSRQV1>
 """
 
-
+## Credit Card Transaction request Template
+#
+# This template contains a request for credit card account transactions
 TMPL_CREDITCARD_REQUEST_ELEMENT = """
 <CREDITCARDMSGSRQV1>
 	<CCSTMTTRNRQ>
@@ -75,33 +87,26 @@ TMPL_CREDITCARD_REQUEST_ELEMENT = """
 	</CCSTMTTRNRQ>
 </CREDITCARDMSGSRQV1>
 """
-
+## Template Environment
 TMPL_ENV = jinja2.Environment()
 
 
-
-#############################
-# Gets OFX data from server 
-
-# Parameters:
-    # bank - THis is a dictionary containing the bank info and signon info
-    #       It will normally be in the following format:
-    #       {   
-    #           "bank_id"="[routing number]",
-    #           "acct_type"="CHECKIKNG/SAVINGS/CREDITCARD",
-    #           "acct_id"="[account number/creditcard number",
-    #           "username"="[username]",
-    #           "password"="[password]",
-    #           "ofx_url"="https://www.url/to/OFX/server",
-    #           "fid"="[banks finantial ID",
-    #           "org"="[Bank's ORG]"
-    #       }
-
-# Returns: 
-    # String - OFX string (an XML file)
+## Get OFX data from a server
+#
+# This function grabs a list of transactions.  The bank object provides all of
+# the required data needed to fetch the OFX data from the server
+#
+# @param bank a dictionary containing information abou the account.  See the 
+# db.py file for the correct format of the bank object.
+# @return the OFX data string
 def get_data(bank):
     # Create Signon Element
     tmpl = TMPL_ENV.from_string(TMPL_SIGNON_REQUEST_ELEMENT)
+
+    # Add Unique items to the bank object before creating the request
+    bank ["time"] =  time.strftime("%Y%m%d%H%M%S")
+    bank ["uuid"] = uuid.uuid1().hex
+    # Render the Request text
     ofx_body = tmpl.render(bank)
     
     # Create Request (depends on Account type)
@@ -113,20 +118,22 @@ def get_data(bank):
         ofx_body += tmpl.render(bank)
     
     tmpl = TMPL_ENV.from_string(TMPL_XML_DOCUMENT)
-    
+    # Render the OFX request
     request = tmpl.render({"ofx_body":ofx_body})
 
     # Sends request and returns the data packet
-    return send_request(request,bank["ofx_url"])
+    return send_request(request,bank["url"])
 
-###########################
-# Sends OFX request and receives OFX data from bank server
-
-# Parameters
-    # bank - Dictonary containing the banks info and signon info
-# Returns
-    # string - OFX Data 
-
+## Sends OFX request string to the server
+#
+# This function sends the OFX body object to the server pointed to by the given
+# url.  This function transmits the OFX string as POST data.  It uses HTTPS
+# so the data will be encrypted and cannot be intercepted.  The returned OFX
+# data will be returned as a string
+#
+# @param body a string contains the OFX request
+# @param url a string containing the ofx server url
+# @return a string containing the OFX response
 def send_request(body,url):
     # Creates HTTPS Connection
     c = httplib.HTTPSConnection(split_url(url)[0])
@@ -144,7 +151,13 @@ def send_request(body,url):
 
     return data
 
-# Splits the URL into base and path
+## Splits the URL into base and path
+#
+# Splits the domain and the path of a URL.  This is used by the HTTP request
+#
+# @param url The URL you want to spilt up
+# @return A list of length 2.  The first item is the domain and the second is 
+# the path
 def split_url(url):
     theRE = "https://(.*?)/(.*)"
     m = re.search(theRE,url)

@@ -1,22 +1,28 @@
 
 
 
-########################
-# Creates a Tree Summary
+## Generate Transaction Report
+#
+# Generates a report given a list of transactions.  It adds up all of the 
+# transactions, prints the sum, and also prints a list of transactions
+#
+#
+def generate_report(db, days=30):
+	# Get a list of the last 30 days  of transactions
+	# Get a list of the categories
+	output = []
+	for c in categories:
+		cat = {}
+		cat["total"] = 0
+		cat["name"] = c["name"]
+		for t in transactions:
+			if re.matches(c["name"],t["name"]):
+				cat["total"] += t["ammount"]
 
-# Parameters:
-    # acct - Account Object to which you want a Tree Summary
-    # start - Beginning date of the summary
-    # stop - Ending date of the summary
+	# Sum up the total expenses
+	for o in output:
+		o["percent"] = o["amount"]/total
 
-def tree_summary(acct,start=None,end=None,indent=""):
-    report = indent
-    # Get List of all transactions
-    # Calcualte Sum of all totals
-    report += acct["name"]+"\t"+total
-
-    # Do the same for all subaccounts
-    for a in acct["accounts"]:
-        report += (a,start,end,indent+"  ")
-    
+		print o["name"],o["percent"]
+	
 

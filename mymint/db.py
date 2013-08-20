@@ -20,7 +20,8 @@ class db:
 		else:
 			self.db = {
 					"transactions":[],
-					"rules":[]
+					"rules":[],
+					"accounts":[]
 				}
 
 
@@ -56,14 +57,15 @@ class db:
 		amount = True
 		return memo and amount
 
-	""" @brief Find the UUID in the database 
-	
-	The UUID is a unique ID for each transaction.  It is a combination of 
-	the bank's ID (FID) and the transactions ID (TID).  This number will be
-	unique to every transaction in every bank.
-
-	@param uuid - The UUID you are looking for
-	@return None if it doesnt exist, otherwise, it returns the transaction """
+	## Find the UUID in the database 
+	#
+	# The UUID is a unique ID for each transaction.  It is a combination of 
+	# the bank's ID (FID) and the transactions ID (TID). This string is
+	# unique to every transaction in every bank.  This function finds the
+	# transaction that has the same UUID (if it exists)
+	#
+	# @param uuid - The UUID you are looking for
+	# @return None if it doesnt exist, otherwise it returns the transaction
 	def _find_uuid(self,uuid):
 		for t in self.get_all_transaction():
 			if t["uuid"] == uuid:
@@ -76,25 +78,25 @@ class db:
 	# Retrieval methods #
 	#-------------------#
 
-	""" @brief Get List of All Transactions
-	
-	@return A list containing transaction dictionaries """ 
+	## Get List of All Transactions
+	#
+	# @return A list containing transaction dictionaries """ 
 	def get_all_transactions(self):
 		return self.db["transaction"]
 
-	""" @brief Get List of all Rules
-	
-	@return A List containing rule dictionaries """
+	## Get List of all Rules
+	#
+	# @return A List containing rule dictionaries """
 	def get_all_rules(self):
 		return self.db["rules"]
 
-	""" @brief Get List of Matching Transactions
-
-	Scans the list of transactions, compares them to the given rule, and 
-	generates a list of transactions that match the rule
-
-	@param rule = A Rule dictionary object
-	@return A list of transactions dictionaries"""
+	## Get List of Matching Transactions
+	#
+	# Scans the list of transactions, compares them to the given rule, and 
+	# generates a list of transactions that match the rule
+	#
+	# @param rule = A Rule dictionary object
+	# @return A list of transactions dictionaries"""
 	def get_matching_transactions(self,rule):
 		ms = []
 		for t in self.get_all_transactions():
@@ -165,15 +167,15 @@ class db:
 	# Removal Methods #
 	#-----------------#
 
-	"""" @brief Remove Transaction from the database 
-	
-	@param transaction The transaction you want to remove """
+	## Remove Transaction from the database 
+	#
+	# @param transaction The transaction you want to remove
 	def remove_transaction(self,transaction):
 		self.db["transaction"].remove(transaction)
 
-	""" @brief Remove a Rule from the database
-
-	@param rule the rule you want to remove """
+	## Remove a Rule from the database
+	#
+	# @param rule the rule you want to remove 
 	def remove_rule(self,rule):
 		self.db["rules"].remove(rule)
 
@@ -200,18 +202,95 @@ class db:
 			"memo":str,
 			}
 
-	def create_transaction(self,memo,uuid,ammount,bank,extra):
+	## Bank Protoype
+	#
+	# This object contains the bank object prototype.  All bank objects 
+	# must contain the following fields
+	FORMAT_ACCOUNT = {
+			"bank_id":str,
+			"acct_type":str,
+			"acct_id":str,
+			"username":str,
+			"password":str,
+			"url":str,
+			"fid":str,
+			"org":str
+			}
+
+	## Create Transaction Object
+	#
+	# Use this method to create a transaction object with the correct 
+	# format.  The parameters are self explainatory mostly.  The Extra
+	# parameter is a dictionary of things you want to add that are not
+	# part of the prototype
+	# @return Transaction Object
+	def create_transaction(self,memo,uuid,ammount,bank,date,extra=None):
+		trns = {
+				"memo":memo,
+				"uuid",uuid,
+				"amount",amount,
+				"bank",bank,
+				"date",date
+				}
+
+		for e in extra:
+			trns[e] = extra[e]
+		return trns
+
+
+	## Create Rule object
+	#
+	# Use this method to create 
+	def create_rule(self,name,extra=None):
+		rule = {
+				"name":name,
+				}
+		for e in extra:
+			rule[e] = extra[e]
+
+		return trns
+
+	## Create Bank Object
+	#
+	# use this method to create a bank object
+	def create_account(self):
 		pass
 
-	def create_rule(self,memo,extra):
-		pass
 
+	## Check Transaction Format
+	#
+	# Checks that the transaction matches the prototype
+	#
+	# @param transaction Transaction objet you are checking
+	# @return Boolean - True if format is correct
 	def _check_transaction_format(self,transaction):
 		return self._check_format(transaction,FORMAT_TRANSACTION)
 
+	## Check Rule Format
+	#
+	# Checks that the rule matches the prototype
+	#
+	# @param rule The rule object you are checking
+	# @return Returns true if format is correct
 	def _check_rule_format(self,rule):
 		return self._check_format(rule,FORMAT_RULE)
 
+	## Check Bank Format
+	#
+	# Checks that the bank objct matches the prototype
+	#
+	# @param bank the bank object being checked
+	# @return Boolean - True if format is correct
+	def _check_account_format(self,bank):
+		return self_check_format(bank,FORMAT_BANK)
+
+	## Check Format (Generic Method)
+	#
+	# Generic Method that check the format of a dictionary
+	#
+	# @param obj Check the format of this dictionary
+	# @param prototype The format prototype you are checking against
+	# @return True if obj format matches prototype, else False
 	def _check_format(self,obj,prototype):
 		# Scan through each object in the prototype
 		for field in prototype:

@@ -10,6 +10,8 @@ Create a python program that organizes my expenses.
 
 # Plan
 1. Donwload a List of Transactions from bank servers and store in a database
+    * OFX DOwnload Functional.
+    * STill need to work on parsing and adding to database
 2. Categorize the expenses using a list of rules
 3. Display Expenses based on Category
 4. Balance the Transactions using the double-entry method
