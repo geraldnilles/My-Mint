@@ -20,7 +20,7 @@ class db:
 		else:
 			self.db = {
 					"transactions":[],
-					"rules":[],
+					"categories":[],
 					"accounts":[]
 				}
 
@@ -153,14 +153,49 @@ class db:
 
 	
 
+	## Add Category to database
+	#
+	# Adds a Category to the database if it doesnt already exist.  If it 
+	# already exists, add the provided rule to the existing category
+	#
+	# @param name The name of the Category (string)
+	# @param rule The matching rule RegEx for this rule
+	# @return 0 if a new category was added.  Return 1 if a new rule was 
+	# added
+	def add_category(self,name,rule):
+		# Check if Category name already exists
+		for c in self.db["categories"]:
+			if c["name"] == name:
+				# Add rule to the Category's rule list and exit
+				c["rules"].append(rule)
+				self._save()
+				return 1
 
-	def add_rule(self,rules):
-		# TODO Check format of rule is correct
-		format_correct = True;
-		rls = []
-		if format_correct:
-			rls = [rules]
+		# Create a new category
+		self.db["categories"].append({
+				"name":name
+				"rule":[
+					rule
+				]
+			})
 
+		self._save()
+		return 0
+	
+	## Add Account to database
+	#
+	# @param acct An Account dictionary object to add
+	def add_account(self,acct):
+		# Check Format
+		if not(self_check_account_format(acct)):
+			return -1
+		
+		# Check if accout already exists, return -1
+		if a in self.db["accounts"]:
+			if acct["acct_num"]==a["acct_num"]:
+				return -1
+
+		self.db["accounts"].append(acct)
 
 
 	#-----------------#
@@ -169,16 +204,35 @@ class db:
 
 	## Remove Transaction from the database 
 	#
-	# @param transaction The transaction you want to remove
-	def remove_transaction(self,transaction):
-		self.db["transaction"].remove(transaction)
+	# @param uuid The Unique ide of the transaction
+	def remove_transaction(self,uuid):
+		# Scan through the transactions
+		for t in self.db["transactions"]:
+			# Remove if UUID matches
+			if t["uuid"] == uuid:
+				self.db["transaction"].remove(t)
 
-	## Remove a Rule from the database
+	## Remove a Category from the database
 	#
-	# @param rule the rule you want to remove 
-	def remove_rule(self,rule):
-		self.db["rules"].remove(rule)
+	# @param name the name of the category you want to move 
+	def remove_category(self,name):
+		# Scan through the categories
+		for c in self.db["categories"]:
+			# Remove if the name matches
+			if c["name"] == name:
+				self.db["categories"].remove(c)
 
+	## Remove an account from the database
+	#
+	# @param acct_num the account number of the account you want to remove
+	def remove_account(self,acct_num):
+		# Scan through the accounts
+		for a in self.db["accounts"]:
+			# Remove if the acct_num matches
+			if a["acct_num"] == acct_num:
+				self.db["accounts"].remove(a)
+
+		
 
 	#----------------#
 	# Format Methods #
@@ -198,8 +252,9 @@ class db:
 	#
 	# THis object contains the rule prototype format.  All rules must
 	# contain the following fields.
-	FORMAT_RULE = {
-			"memo":str,
+	FORMAT_CATEGORY = {
+			"name":str,
+			"rules":list
 			}
 
 	## Bank Protoype
@@ -217,45 +272,6 @@ class db:
 			"org":str
 			}
 
-	## Create Transaction Object
-	#
-	# Use this method to create a transaction object with the correct 
-	# format.  The parameters are self explainatory mostly.  The Extra
-	# parameter is a dictionary of things you want to add that are not
-	# part of the prototype
-	# @return Transaction Object
-	def create_transaction(self,memo,uuid,ammount,bank,date,extra=None):
-		trns = {
-				"memo":memo,
-				"uuid",uuid,
-				"amount",amount,
-				"bank",bank,
-				"date",date
-				}
-
-		for e in extra:
-			trns[e] = extra[e]
-		return trns
-
-
-	## Create Rule object
-	#
-	# Use this method to create 
-	def create_rule(self,name,extra=None):
-		rule = {
-				"name":name,
-				}
-		for e in extra:
-			rule[e] = extra[e]
-
-		return trns
-
-	## Create Bank Object
-	#
-	# use this method to create a bank object
-	def create_account(self):
-		pass
-
 
 	## Check Transaction Format
 	#
@@ -266,14 +282,16 @@ class db:
 	def _check_transaction_format(self,transaction):
 		return self._check_format(transaction,FORMAT_TRANSACTION)
 
+
 	## Check Rule Format
 	#
 	# Checks that the rule matches the prototype
 	#
 	# @param rule The rule object you are checking
 	# @return Returns true if format is correct
-	def _check_rule_format(self,rule):
-		return self._check_format(rule,FORMAT_RULE)
+	def _check_category_format(self,cat):
+		return self._check_format(cat,FORMAT_RULE)
+
 
 	## Check Bank Format
 	#

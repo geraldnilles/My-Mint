@@ -1,42 +1,54 @@
 import argparse
 
-# import sys
 
-
+COMMAND_LIST = [ 
+		"account",
+		"category",
+		"update",
+		"report"
+		]
 
 #----------------------
 # Command Functions
 #----------------------
 
-def account():
-	if len(sys.argv) <= 2:
-		usage()
-		return
+## Gather Info and Add Account to database
+def account_add():
+	print "Add new account to database"
+	acct = {}
+	acct["bank_id"] = raw_input("Enter the Bank ID. "+
+			"This is usually the routing number:")
+	acct["acct_type"] = raw_input("Enter the Accout Type "+
+			"(CHECKING,SAVINGS,CREDITCARD):")
+	acct["acct_num"] = raw_input("Enter the Account Number:")
+	acct["username"] = raw_input("Enter the login username:")
+	acct["password"] = raw_input("Enter the login password:")
+	acct["url"] = raw_input("Enter the OFX server URL:")
+	acct["fid"] = raw_input("Enter the bank's FID:")
+	acct["org"] = raw_input("Enter the bank's ORG:")
+	print acct
 
-	flag = sys.argv[2]
-	if flag == "-a":
-		print "Add new account to database"
-		acct = {}
-		acct["bank_id"] = raw_input("Enter the Bank ID. "+
-				"This is usually the routing number:")
-		acct["acct_type"] = raw_input("Enter the Accout Type "+
-				"(CHECKING,SAVINGS,CREDITCARD):")
-		acct["acct_it"] = raw_input("Enter the Account Number:")
-		acct["username"] = raw_input("Enter the login username:")
-		acct["password"] = raw_input("Enter the login password:")
-		acct["url"] = raw_input("Enter the OFX server URL:")
-		acct["fid"] = raw_input("Enter the bank's FID:")
-		acct["org"] = raw_input("Enter the bank's ORG:")
-		print acct
-	elif flag == "-r":
-		print "Remove Account from Database"
-	elif flag == "-l":
-		print "list all accounts in the database"
-	else:
-		usage()
+## Remove Account from database
+def account_remove(acct_num):
+	print "removing %s"%acct_num
 
-def category():
+## Print List of accounts
+def account_list():
+	print "A list of accounts"
+
+## Gather Info and Add Category to Database
+def category_add():
 	print "Category Command"
+	cat_name = raw_input("Enter the new category name: ")
+	rule = raw_input("Enter Matching RegEx Rule: ")
+
+## Remove Category
+def category_remove(cat_name):
+	print "Removing Category "+cat_name
+
+## Print a list of categories
+def category_list():
+	print "A list of categories and their rules"
 
 def update():
 	print "Update Command"
@@ -45,56 +57,42 @@ def report():
 	print "Report Command"
 
 
-## CLI Usage Function
-#
-# This function prints the correct usage if the "-h" flag is detected.  It also
-# shows how to use the CLI if the user fucks up
-def usage():
-	print """
-Commands:
-	account	  -  	Add or Remove Accounts
-	category  -	Add or Remove Categories
-	update	  -	Update the database
-	report	  -	Print up a report
-	help	  -     Prints this message
-	
-
-Account Command
-	-a 		Add a new account to the database
-
-	-r <acct_num>	Remove an account provided the account number
-	
-	-l 		List all of the acccounts
-
-Category Command
-	-a 		Add a new category
-
-	-r 		Provide the Regular expression
-
-	-l		List all
-"""
-
-
-## Command Types
-#
-# THis is alist of legal command types
-CMD_TYPES = {	"account":account,
-		"category":category,
-		"update":update,
-		"report":report,
-		"help":usage
-		}
-
+#-------------------
+# CLI Argument Parser
+#-------------------
 
 def parse():
 	parser = argparse.ArgumentParser(description="Command Line Interface for the My-Mint project")
-	parser.add_argument("command", choices=["account","category",
-		"update","report"])
+	parser.add_argument("command", metavar="command", choices=COMMAND_LIST, 
+		help="Chose the sub-command.  Options include: "+
+		"account, category, update, and report")
 	parser.add_argument("-a","--add", action="store_true")
-	parser.add_argument("-r","--remove", nargs="+")
+	parser.add_argument("-r","--remove", nargs="+", metavar="item_id")
 	parser.add_argument("-l","--list", action="store_true")
 
-	print repr(parser.parse_args())
+	args = parser.parse_args()
+
+	# Run Command
+	if args.command == "account":
+		if args.add:
+			account_add()
+		elif args.remove:
+			account_remove(args.remove)
+		elif args.list:
+			account_list()
+	elif args.command == "category":
+		if args.add:
+			category_add()
+		elif args.remove:
+			category_remove(args.remove)
+		elif args.list:
+			category_list()
+	elif args.cocmmand == "update":
+		update()
+	elif args.report == "report":
+		report()
+
+
 
 
 
