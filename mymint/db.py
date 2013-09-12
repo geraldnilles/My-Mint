@@ -1,4 +1,4 @@
-import json
+import json, os
 
 ## Database Class
 #
@@ -18,6 +18,7 @@ class db:
 		if os.path.exists(filename):
 			self._open()
 		else:
+			# if the path does not exist, create a DB
 			self.db = {
 					"transactions":[],
 					"categories":[],
@@ -34,28 +35,19 @@ class db:
 	# Private method for writing the database to the disk.  By making this
 	# a separate method, we can prevent needless disk writes
 	def _save(self):
-		json.dump(self.filename, self.db)
+		f = open(self.filename,"w")
+		json.dump(self.db,f)
+		f.close()
 
 	## Load JSON database from the disk to memory
 	#
 	# Private method fro loading the database to memory
 	def _open(self):
-		self.db(json.load(self.filename))
+		f = open(self.filename,"r")
+		self.db = json.load(f)
+		f.close()
 
-	## Determine if transaction matches the rule
-	#	
-	# Private method that compares a transaction and a rule and determines
-	# if they match.  If so, the method returns True
-	#
-	# @param transaction - A transaction dictionary object
-	# @param rule - A Rule Dictionary object
-	# @return  True if the rule matches the transaction 
-	def _matches(self,transaction,rule):
-		# Check if the memo string matches
-		memo = re.matches(rule["memo"],transaction["memo"])
-		# TODO Check if the amount range matches
-		amount = True
-		return memo and amount
+
 
 	## Find the UUID in the database 
 	#
@@ -67,7 +59,7 @@ class db:
 	# @param uuid - The UUID you are looking for
 	# @return None if it doesnt exist, otherwise it returns the transaction
 	def _find_uuid(self,uuid):
-		for t in self.get_all_transaction():
+		for t in self.get_transaction():
 			if t["uuid"] == uuid:
 				return t
 
@@ -81,29 +73,14 @@ class db:
 	## Get List of All Transactions
 	#
 	# @return A list containing transaction dictionaries """ 
-	def get_all_transactions(self):
+	def get_transactions(self):
 		return self.db["transaction"]
 
 	## Get List of all Rules
 	#
 	# @return A List containing rule dictionaries """
-	def get_all_rules(self):
-		return self.db["rules"]
-
-	## Get List of Matching Transactions
-	#
-	# Scans the list of transactions, compares them to the given rule, and 
-	# generates a list of transactions that match the rule
-	#
-	# @param rule = A Rule dictionary object
-	# @return A list of transactions dictionaries"""
-	def get_matching_transactions(self,rule):
-		ms = []
-		for t in self.get_all_transactions():
-			if(self._matches(t,rule)):
-				ms.append(t)
-
-		return ms
+	def get_categories(self):
+		return self.db["categories"]
 
 	#------------------#
 	# Addition Methods #
@@ -139,7 +116,7 @@ class db:
 		
 		# Scan through the ts list, and see if they already exist
 		for t in ts:
-			t_db = self._find_uuid(t["uuid"]):
+			t_db = self._find_uuid(t["uuid"])
 			if t_db:
 				# Update the transaction with the latest data
 				t_db["memo"] = t["memo"]
@@ -173,8 +150,8 @@ class db:
 
 		# Create a new category
 		self.db["categories"].append({
-				"name":name
-				"rule":[
+				"name":name,
+				"rules":[
 					rule
 				]
 			})
@@ -237,6 +214,8 @@ class db:
 	#----------------#
 	# Format Methods #
 	#----------------#
+	# These methods are used to make sure the user input jibes with 
+	# the database format
 
 	## Transaction Prototype
 	#

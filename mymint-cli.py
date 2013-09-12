@@ -1,10 +1,10 @@
 import argparse
-
+import mymint.db
 
 COMMAND_LIST = [ 
 		"account",
 		"category",
-		"update",
+		"sync",
 		"report"
 		]
 
@@ -13,7 +13,7 @@ COMMAND_LIST = [
 #----------------------
 
 ## Gather Info and Add Account to database
-def account_add():
+def account_add(db):
 	print "Add new account to database"
 	acct = {}
 	acct["bank_id"] = raw_input("Enter the Bank ID. "+
@@ -29,31 +29,35 @@ def account_add():
 	print acct
 
 ## Remove Account from database
-def account_remove(acct_num):
+def account_remove(db,acct_num):
 	print "removing %s"%acct_num
 
 ## Print List of accounts
-def account_list():
-	print "A list of accounts"
+def account_list(db):
+	print "Accounts:"
+
+	print db.get_accounts()
 
 ## Gather Info and Add Category to Database
-def category_add():
+def category_add(db):
 	print "Category Command"
 	cat_name = raw_input("Enter the new category name: ")
 	rule = raw_input("Enter Matching RegEx Rule: ")
+	db.add_category(cat_name,rule)
 
 ## Remove Category
-def category_remove(cat_name):
+def category_remove(db,cat_name):
 	print "Removing Category "+cat_name
 
 ## Print a list of categories
-def category_list():
-	print "A list of categories and their rules"
+def category_list(db):
+	print "List of Categories:"
+	print db.get_categories()
 
-def update():
+def sync(db):
 	print "Update Command"
 
-def report():
+def report(db):
 	print "Report Command"
 
 
@@ -65,32 +69,35 @@ def parse():
 	parser = argparse.ArgumentParser(description="Command Line Interface for the My-Mint project")
 	parser.add_argument("command", metavar="command", choices=COMMAND_LIST, 
 		help="Chose the sub-command.  Options include: "+
-		"account, category, update, and report")
+		"account, category, sync, and report")
 	parser.add_argument("-a","--add", action="store_true")
 	parser.add_argument("-r","--remove", nargs="+", metavar="item_id")
 	parser.add_argument("-l","--list", action="store_true")
+	parser.add_argument("-d","--db", required=True,metavar="database_file.json")
 
 	args = parser.parse_args()
+
+	db = mymint.db.db(args.db)
 
 	# Run Command
 	if args.command == "account":
 		if args.add:
-			account_add()
+			account_add(db)
 		elif args.remove:
-			account_remove(args.remove)
+			account_remove(db,args.remove)
 		elif args.list:
-			account_list()
+			account_list(db)
 	elif args.command == "category":
 		if args.add:
-			category_add()
+			category_add(db)
 		elif args.remove:
-			category_remove(args.remove)
+			category_remove(db,args.remove)
 		elif args.list:
-			category_list()
-	elif args.cocmmand == "update":
-		update()
+			category_list(db)
+	elif args.cocmmand == "sync":
+		sync(db)
 	elif args.report == "report":
-		report()
+		report(db)
 
 
 
@@ -99,17 +106,5 @@ def parse():
 # Main Function
 if __name__ == "__main__":
 	parse()
-	exit()
-	# Parse the Command Type
-	if len(sys.argv) <= 1:
-		print "No Commend Specified: \n\n"
-		usage()
-	else:
-		cmd_t = sys.argv[1]
-		# Verify Command TYpe is legal
-		if cmd_t in CMD_TYPES:
-			CMD_TYPES[cmd_t]()
-		else:
-			usage()
 
 
