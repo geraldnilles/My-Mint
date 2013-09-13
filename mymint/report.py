@@ -27,6 +27,8 @@ def generate(db, days=30):
 	# Get a list of the categories
 	categories = db.get_categories()
 
+	
+
 	### Analyze the Transactions
 	# Create a report list
 	report = []
@@ -73,12 +75,17 @@ def generate(db, days=30):
 
 	
 	for r in report:
-		print "\n\n"+r["name"]
+		print "\n"+r["name"]
 		for t in r["transactions"]:
-			print t["amount"],t["name"]+t["memo"]
+			print t["amount"],t["name"]+t["memo"],t["date"]
 	for r in report:
 		print r["total"],r["name"]
-
+	
+	expenses = 0
+	for r in report:
+		if not (r["name"] in ["uncategorized","Investment","Income"]):
+			expenses += r["total"]
+	print "\nTotal Expenses:",expenses
 
 def matches(t,c):
 	for r in c["rules"]:
