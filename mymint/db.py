@@ -126,6 +126,8 @@ class db:
 				# Update the transaction with the latest data
 				t_db["memo"] = t["memo"]
 				t_db["amount"] = t["amount"]
+				t_db["date"] = t["date"]
+				t_db["name"] = t["name"]
 			else:
 				# Add this T to the db
 				self.db["transactions"].append(t)
@@ -230,7 +232,7 @@ class db:
 	# This object contains the transactions prototype format.  All 
 	# transactions must contain the following fields
 	FORMAT_TRANSACTION = {
-			"date":str,
+			"date":float,
 			"name":str,
 			"memo":str,
 			"uuid":str,

@@ -1,5 +1,5 @@
-
-
+import time
+import re
 
 ## Generate Transaction Report
 #
@@ -7,7 +7,7 @@
 # transactions, prints the sum, and also prints a list of transactions
 #
 #
-def generate_report(db, days=30):
+def generate(db, days=30):
 	# Get all of the transactions
 	transactions = db.get_transactions()
 	# Get current time
@@ -16,9 +16,14 @@ def generate_report(db, days=30):
 	recent_transactions = []
 	for t in transactions:
 		# If transaction is new, add to the recent_transactions list
-		if abs(now-t["date"]) < days*24*60*60: # Days --> seconds
+		if now-t["date"] < days*24*60*60: # Days --> seconds
 			recent_transactions.append(t)
 	
+	print "Reporting based on last %d days, (%d transactions)"%(
+				days,
+				len(recent_transactions)
+			)
+
 	# Get a list of the categories
 	categories = db.get_categories()
 
@@ -26,13 +31,13 @@ def generate_report(db, days=30):
 	# Create a report list
 	report = []
 	for c in categories:
-		# Create an item for the report
+		# Create a report item to add to the report list
 		report_item = {}
 		report_item["name"] = c["name"]
 		report_item["transactions"] = [] 
 
 		# Add matching transactions to the report item
-		for t in transactions:
+		for t in recent_transactions:
 			if matches(t,c):
 				report_item["transactions"].append(t)
 
@@ -42,9 +47,9 @@ def generate_report(db, days=30):
 	### Look for Uncategorized transactions
 	# Create Uncategorized report item
 	report_item = {	"name":"uncategorized",
-			"transactions"=[]}
-	# Scan transactions
-	for t in transactions:
+			"transactions":[]}
+	# Scan transaction list and add uncategorized to this report_item
+	for t in recent_transactions:
 		found = False
 		# Mark as found if already put in a category
 		for r in report:
@@ -55,21 +60,30 @@ def generate_report(db, days=30):
 		if not found:
 			report_item["transactions"].append(t)
 	
+	# Add the report time to the report
 	report.append(report_item)
 
-	### Print the report
+	### Calculate Total for each report item
 	for r in report:
 		total = 0
 		for t in r["transactions"]:
 			total += t["amount"]
+		
+		r["total"] = total
 
-		print r["name"],total
+	
+	for r in report:
+		print "\n\n"+r["name"]
+		for t in r["transactions"]:
+			print t["amount"],t["name"]+t["memo"]
+	for r in report:
+		print r["total"],r["name"]
 
 
 def matches(t,c):
 	for r in c["rules"]:
 		# If the RE match doesnt return None
-		if re.matches(r,c["name"]):
+		if re.search(r,t["name"]+t["memo"],re.IGNORECASE):
 			return True
 
 	# If no match, return false

@@ -3,6 +3,8 @@ import argparse
 import mymint.db
 import mymint.ofx_import
 import mymint.ofx_server
+import mymint.report
+import time
 
 COMMAND_LIST = [ 
 		"account",
@@ -95,7 +97,11 @@ def transaction_remove(db,trn_uuids):
 def transaction_list(db):
 	print "Printing a list of transactions"
 	for t in db.get_transactions():
-		print t["amount"],"\t",t["name"]
+		print t["amount"],"\t",t["name"]+"\t"+str(t["date"])
+
+		#dt = time.strptime(t["date"].split(".")[0],"%Y%m%d%H%M%S")
+		#print time.mktime(dt)
+
 
 #------------------
 # Sync Functions
@@ -117,7 +123,7 @@ def sync(db):
 #------------------
 
 def report(db):
-	print "Report Command"
+	mymint.report.generate(db)
 	
 
 #-------------------
@@ -162,7 +168,7 @@ def parse():
 			transaction_list(db)
 	elif args.command == "sync":
 		sync(db)
-	elif args.report == "report":
+	elif args.command == "report":
 		report(db)
 	else:
 		parser.print_help()

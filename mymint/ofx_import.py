@@ -8,6 +8,7 @@
 
 import xml.etree.ElementTree as etree
 import HTMLParser
+import time
 
 ## Convert OFX (XML) to a JSON object
 #
@@ -33,6 +34,10 @@ def xml(ofx_string):
 			trns["memo"] =		t.find("MEMO").text
 		trns["date"] = 		t.find("DTPOSTED").text
 		trns["uuid"] = 		t.find("FITID").text
+
+		# Convert Date to Epoch TIme:
+		ep_t = time.strptime(trns["date"].split(".")[0],"%Y%m%d%H%M%S")
+		trns["date"] = time.mktime(ep_t)
 
 		
 
