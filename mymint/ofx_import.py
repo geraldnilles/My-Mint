@@ -25,7 +25,7 @@ def xml(ofx_string):
 	for t in root.iter("STMTTRN"):
 		trns = {}
 
-		trns["amount"] = 	t.find("TRNAMT").text
+		trns["amount"] = 	float(t.find("TRNAMT").text)
 		trns["name"] = 		t.find("NAME").text
 		trns["memo"] =		t.find("MEMO").text
 		trns["date"] = 		t.find("DTPOSTED").text
@@ -67,7 +67,7 @@ class sgml_parser(HTMLParser.HTMLParser):
 	# Adds a t_list object where the list will be stored
 	def __init__(self, t_list):
 		HTMLParser.HTMLParser.__init__(self)
-
+		self.last_tag = ""	
 		self.t_list = t_list
 
 	## Start Tag Handle
@@ -79,7 +79,7 @@ class sgml_parser(HTMLParser.HTMLParser):
 		# Save Latest Tag for future use
 		self.last_tag = tag
 		# If tag is STMTTRN, add a new dict to the list
-		if tag == "STMTTRN":
+		if tag == "stmttrn":
 			self.t_list.append({})
 
 	## Data handle
@@ -87,17 +87,17 @@ class sgml_parser(HTMLParser.HTMLParser):
 	# Stores the SGML data into the latest transaction dictrionary
 	def handle_data(self,data):
 		# Looks at the last tag and populates the correct field in dict
-		if self.last_tag =="TRNAMT":
-			self.t_list[-1]["amount"] = data
-		elif self.last_tag =="NAME":
+		if self.last_tag =="trnamt":
+			self.t_list[-1]["amount"] = float(data)
+		elif self.last_tag =="name":
 			self.t_list[-1]["name"] = data
-		elif self.last_tag =="MEMO":
+		elif self.last_tag =="memo":
 
 			self.t_list[-1]["memo"] = data
-		elif self.last_tag =="DTPOSTED":
+		elif self.last_tag =="dtposted":
 
 			self.t_list[-1]["date"] = data
-		elif self.last_tag =="FITID":
+		elif self.last_tag =="fitid":
 
 			self.t_list[-1]["uuid"] = data
 		else:

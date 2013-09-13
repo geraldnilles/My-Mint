@@ -59,7 +59,7 @@ class db:
 	# @param uuid - The UUID you are looking for
 	# @return None if it doesnt exist, otherwise it returns the transaction
 	def _find_uuid(self,uuid):
-		for t in self.get_transaction():
+		for t in self.get_transactions():
 			if t["uuid"] == uuid:
 				return t
 
@@ -74,13 +74,19 @@ class db:
 	#
 	# @return A list containing transaction dictionaries """ 
 	def get_transactions(self):
-		return self.db["transaction"]
+		return self.db["transactions"]
 
 	## Get List of all Rules
 	#
 	# @return A List containing rule dictionaries """
 	def get_categories(self):
 		return self.db["categories"]
+
+	## Get List of accounts
+	#
+	# @return A list containing Account dictionaries
+	def get_accounts(self):
+		return self.db["accounts"]
 
 	#------------------#
 	# Addition Methods #
@@ -113,7 +119,6 @@ class db:
 				# If the children match, add them to ts
 				if self._check_transaction_format(t):
 					ts.append(t)
-		
 		# Scan through the ts list, and see if they already exist
 		for t in ts:
 			t_db = self._find_uuid(t["uuid"])
@@ -222,10 +227,11 @@ class db:
 	# This object contains the transactions prototype format.  All 
 	# transactions must contain the following fields
 	FORMAT_TRANSACTION = {
+			"date":str,
+			"name":str,
 			"memo":str,
 			"uuid":str,
-			"ammount":float,
-			"bank":str
+			"amount":float
 			}
 	## Rule Prototype
 	#
@@ -259,7 +265,7 @@ class db:
 	# @param transaction Transaction objet you are checking
 	# @return Boolean - True if format is correct
 	def _check_transaction_format(self,transaction):
-		return self._check_format(transaction,FORMAT_TRANSACTION)
+		return self._check_format(transaction,self.FORMAT_TRANSACTION)
 
 
 	## Check Rule Format
@@ -269,7 +275,7 @@ class db:
 	# @param rule The rule object you are checking
 	# @return Returns true if format is correct
 	def _check_category_format(self,cat):
-		return self._check_format(cat,FORMAT_RULE)
+		return self._check_format(cat,self.FORMAT_CATEGORY)
 
 
 	## Check Bank Format
@@ -279,7 +285,7 @@ class db:
 	# @param bank the bank object being checked
 	# @return Boolean - True if format is correct
 	def _check_account_format(self,bank):
-		return self_check_format(bank,FORMAT_BANK)
+		return self_check_format(bank,self.FORMAT_ACCOUNT)
 
 	## Check Format (Generic Method)
 	#
@@ -298,4 +304,5 @@ class db:
 					continue;
 			else:
 				return False
+		return True
 	
