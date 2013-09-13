@@ -19,8 +19,8 @@ import re
 ## Document Header Template
 #
 # Contains the XML and OFX headers
-TMPL_XML_DOCUMENT = """<?xml version=1.0 encoding=UTF-8?>
-<?OFX OFXHEADER=200 VERSION=211 SECURITY=NONE OLDFILEUID=NONE NEWFILEUID=NONE ?>
+TMPL_XML_DOCUMENT = """<?xml version="1.0" encoding="UTF-8"?>
+<?OFX OFXHEADER="200" VERSION="211" SECURITY="NONE" OLDFILEUID="NONE" NEWFILEUID="NONE" ?>
 
 <OFX>
 	{{ ofx_body }}
