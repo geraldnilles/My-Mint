@@ -169,15 +169,18 @@ class db:
 	# @param acct An Account dictionary object to add
 	def add_account(self,acct):
 		# Check Format
-		if not(self_check_account_format(acct)):
+		if not(self._check_account_format(acct)):
 			return -1
 		
 		# Check if accout already exists, return -1
-		if a in self.db["accounts"]:
-			if acct["acct_num"]==a["acct_num"]:
+		for a in self.db["accounts"]:
+			if acct["acct_id"]==a["acct_id"]:
 				return -1
 
 		self.db["accounts"].append(acct)
+
+		self._save()
+		return 0
 
 
 	#-----------------#
@@ -206,12 +209,12 @@ class db:
 
 	## Remove an account from the database
 	#
-	# @param acct_num the account number of the account you want to remove
-	def remove_account(self,acct_num):
+	# @param acct_id the account number of the account you want to remove
+	def remove_account(self,acct_id):
 		# Scan through the accounts
 		for a in self.db["accounts"]:
-			# Remove if the acct_num matches
-			if a["acct_num"] == acct_num:
+			# Remove if the acct_id matches
+			if a["acct_id"] == acct_id:
 				self.db["accounts"].remove(a)
 
 		
@@ -285,7 +288,7 @@ class db:
 	# @param bank the bank object being checked
 	# @return Boolean - True if format is correct
 	def _check_account_format(self,bank):
-		return self_check_format(bank,self.FORMAT_ACCOUNT)
+		return self._check_format(bank,self.FORMAT_ACCOUNT)
 
 	## Check Format (Generic Method)
 	#

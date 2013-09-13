@@ -24,12 +24,18 @@ def xml(ofx_string):
 	# Iterate over all Transaction elements
 	for t in root.iter("STMTTRN"):
 		trns = {}
-
+		
 		trns["amount"] = 	float(t.find("TRNAMT").text)
 		trns["name"] = 		t.find("NAME").text
-		trns["memo"] =		t.find("MEMO").text
+		if t.find("MEMO") == None:
+			trns["memo"] = ""
+		else:
+			trns["memo"] =		t.find("MEMO").text
 		trns["date"] = 		t.find("DTPOSTED").text
 		trns["uuid"] = 		t.find("FITID").text
+
+		
+
 
 		t_list.append(trns)
 

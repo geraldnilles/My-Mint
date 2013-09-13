@@ -136,7 +136,6 @@ def get_data(bank):
 # @return a string containing the OFX response
 def send_request(body,url):
     # Creates HTTPS Connection
-    print url, body
     c = httplib.HTTPSConnection(split_url(url)[0])
     # Creates Headers (Pretending to be Quiken 1.7 for WIndows)
     headers = { "Content-Type":"application/x-ofx",
@@ -146,7 +145,6 @@ def send_request(body,url):
     # Get Response
     r = c.getresponse()
     # Print Status
-    print (r.status,r.reason)
     data = r.read()
     c.close()
 

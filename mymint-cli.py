@@ -2,6 +2,7 @@
 import argparse
 import mymint.db
 import mymint.ofx_import
+import mymint.ofx_server
 
 COMMAND_LIST = [ 
 		"account",
@@ -23,13 +24,13 @@ def account_add(db):
 			"This is usually the routing number:")
 	acct["acct_type"] = raw_input("Enter the Accout Type "+
 			"(CHECKING,SAVINGS,CREDITCARD):")
-	acct["acct_num"] = raw_input("Enter the Account Number:")
+	acct["acct_id"] = raw_input("Enter the Account Number:")
 	acct["username"] = raw_input("Enter the login username:")
 	acct["password"] = raw_input("Enter the login password:")
 	acct["url"] = raw_input("Enter the OFX server URL:")
 	acct["fid"] = raw_input("Enter the bank's FID:")
 	acct["org"] = raw_input("Enter the bank's ORG:")
-	print acct
+	print db.add_account(acct)
 
 ## Remove Account from database
 def account_remove(db,acct_nums):
@@ -78,7 +79,7 @@ def transaction_add(db):
 	data=f.read()
 	f.close()
 
-	t = mymint.ofx_import.sgml(data)
+	t = mymint.ofx_import.xml(data)
 	print t[10]
 	db.add_transaction(t)
 
@@ -101,7 +102,15 @@ def transaction_list(db):
 #-----------------
 
 def sync(db):
-	print "Update Command"
+	print "Sync Transactions:"
+	for bank in db.get_accounts():
+		print "\t Syncing %s" % bank["acct_id"]
+		data = mymint.ofx_server.get_data(bank)
+		ts = mymint.ofx_import.xml(data)
+		db.add_transaction(ts)
+
+	print "Database now contains %d transactions" % len(db.get_transactions())
+
 
 #------------------
 # Report Functions
@@ -109,7 +118,7 @@ def sync(db):
 
 def report(db):
 	print "Report Command"
-
+	
 
 #-------------------
 # CLI Argument Parser
@@ -151,7 +160,7 @@ def parse():
 			transaction_remove(db,args.remove)
 		elif args.list:
 			transaction_list(db)
-	elif args.cocmmand == "sync":
+	elif args.command == "sync":
 		sync(db)
 	elif args.report == "report":
 		report(db)
