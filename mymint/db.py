@@ -208,6 +208,10 @@ class db:
 			# Remove if the name matches
 			if c["name"] == name:
 				self.db["categories"].remove(c)
+				self._save()
+				return c
+		return None
+		
 
 	## Remove an account from the database
 	#
