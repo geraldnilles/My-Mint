@@ -73,11 +73,16 @@ def generate(db, days=30):
 		
 		r["total"] = total
 
-	
+	report = sorted(report, key=lambda r: r["total"])
+
+	# Print a list of transactions for each category
 	for r in report:
 		print "\n"+r["name"]
 		for t in r["transactions"]:
 			print t["amount"],t["name"]+t["memo"],t["date"]
+	
+	print " "
+	# Print the total for each category
 	for r in report:
 		print r["total"],r["name"]
 	
