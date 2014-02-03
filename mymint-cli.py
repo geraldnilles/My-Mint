@@ -14,7 +14,15 @@ def report(db):
 	
 
 def print_help():
-	print "Help Info!"
+	print """
+usage: mymint-cli.py [command] [options]
+
+Possible Commands:
+	account - View and Modify account info
+	transaction - View and Modify Transactions
+	category - View and Modify Categories
+	report - Print a report
+	"""
 
 #-------------------
 # CLI Argument Parser

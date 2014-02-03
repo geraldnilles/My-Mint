@@ -6,6 +6,7 @@
 
 import argparse
 import mymint.db
+import hashlib
 
 def parse(arg_list):
 	parser = argparse.ArgumentParser(description="Account Argument Parser")
@@ -49,6 +50,8 @@ def add(db):
 	acct["url"] = raw_input("Enter the OFX server URL:")
 	acct["fid"] = raw_input("Enter the bank's FID:")
 	acct["org"] = raw_input("Enter the bank's ORG:")
+	acct["bank_id"] = raw_input("Enter Bank ID:")
+	#acct["uuid"] = hashlib.sha256(acct["acct_id"]+acct["url"]).hexdigest()
 	print db.add_account(acct)
 
 ## Remove Account from database

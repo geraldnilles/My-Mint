@@ -9,7 +9,7 @@ import re
 #
 def generate(db, days=30):
 	# Get all of the transactions
-	transactions = db.get_transactions()
+	transactions = sorted(db.get_transactions(),key=lambda x: x["amount"])
 	# Get current time
 	now = time.time()
 	# Create a blank list where you will put your transactions
@@ -91,6 +91,11 @@ def generate(db, days=30):
 		if not (r["name"] in ["uncategorized","Investment","Income"]):
 			expenses += r["total"]
 	print "\nTotal Expenses:",expenses
+
+	total = 0
+	for t in recent_transactions:
+		total += t["amount"]
+	print "Total Sum:",total
 
 def matches(t,c):
 	for r in c["rules"]:

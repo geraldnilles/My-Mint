@@ -172,12 +172,12 @@ class db:
 	def add_account(self,acct):
 		# Check Format
 		if not(self._check_account_format(acct)):
-			return -1
+			return "Wrong Format"
 		
 		# Check if accout already exists, return -1
 		for a in self.db["accounts"]:
 			if acct["acct_id"]==a["acct_id"]:
-				return -1
+				return "Account Exists!"
 
 		self.db["accounts"].append(acct)
 
